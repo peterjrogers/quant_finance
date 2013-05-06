@@ -1,4 +1,4 @@
 quant_finance
 =============
 
-Python Quantatative Finance tools
+Python quantitative finance tools
