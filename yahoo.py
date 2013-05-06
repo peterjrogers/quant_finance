@@ -4,6 +4,7 @@ class Yahoo():
     def __init__(self):
         """
         Tools for downloading information from Yahoo finance
+        (c) 2012, 2013 Intelligent Planet Ltd
         """
         
         self.verbose = 0
