@@ -260,3 +260,36 @@ class Ta():
         self.stdev = round((math.sqrt(dset / pos)), ndigits)
         
         
+    def int_dif(self, close, int_close, ndigits=2):
+        """
+        Difference between close and x (interval) ago close price
+        """
+        
+        return round((((close / int_close) - 1.) * 100.), ndigits)
+       
+
+    def max_drawdown(self):
+        """
+        calculate maximum drawdown loss
+        percentage equity value loss and duration
+        """
+        #check for loss and start loss series
+        if self.close < self.last_close:
+            if self.maxdraw_lock == 0:
+                self.maxdraw_start = self.last_close
+                self.maxdraw_lock = 1
+                self.maxdraw_count = 1
+           
+        #check for end of loss series
+        if self.maxdraw_lock == 1:
+            if self.close > self.last_close:    #check if loss ended
+                loss = self.int_dif(self.last_close, self.maxdraw_start)
+                if loss < self.maxdraw_loss: #check for new maxloss
+                    self.maxdraw_loss = loss
+                    if self.maxdraw_count > self.maxdraw_time:    #check for higher maxloss duration
+                        self.maxdraw_time = self.maxdraw_count
+                self.maxdraw_lock = self.maxdraw_count = 0    #reset loss series after profit
+            else:
+                self.maxdraw_count +=1    #loss series continues
+                
+                
