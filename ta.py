@@ -234,43 +234,42 @@ class Ta():
         https://en.wikipedia.org/wiki/Standard_Deviation
         """
         try: 
-            if self.int_pro_list: pass
-        except: self.int_pro_list = []
+            if self.standev_return_list: pass
+        except: self.standev_return_list = []
         
-        #calc per interval return     % ret = ((close(end) / close(start)) - 1) * 100
-        self.int_return = round((((self.close / self.last_close) - 1.) * 100.), ndigits)
-        
+        #calc per interval return
+        int_return = self.int_dif(self.close, self.last_close, ndigits)
+
         #add return to profit list    self.int_profit
-        self.int_pro_list.append(self.int_return)
+        self.standev_return_list.append(int_return)
         
-        #calc averge return
-        self.avg_int_return = sum(self.int_pro_list) / (len(self.int_pro_list))    #xbar
-        #print self.avg_int_return
+        #calc averge return - xbar
+        xbar = sum(self.standev_return_list) / (len(self.standev_return_list))
         
-        #get self.avg_int_return - self.int_return for all data in period
+        #get self.xbar - int_return for all data in period
         pos = 0 
         dset = 0.
-        for item in self.int_pro_list:
-            xminus = self.int_pro_list[pos] - self.avg_int_return
-            xsq = (xminus * xminus)
+        for item in self.standev_return_list:
+            xminus = self.standev_return_list[pos] - xbar
+            xsq = math.pow(xminus, 2)
             dset += xsq
             pos += 1
         
         #get standard deviation (percent)
         self.stdev = round((math.sqrt(dset / pos)), ndigits)
-        
-        
-    def int_dif(self, close, int_close, ndigits=2):
+       
+       
+    def int_dif(self, start, end, ndigits=2):
         """
-        Difference between close and x (interval) ago close price
+        Percentage difference between start and end price
         """
         
-        return round((((close / int_close) - 1.) * 100.), ndigits)
+        return round((((end / start) - 1.) * 100.), ndigits)
        
 
     def max_drawdown(self):
         """
-        calculate maximum drawdown loss
+        Calculate maximum drawdown loss
         percentage equity value loss and duration
         """
         #check for loss and start loss series
@@ -291,5 +290,13 @@ class Ta():
                 self.maxdraw_lock = self.maxdraw_count = 0    #reset loss series after profit
             else:
                 self.maxdraw_count +=1    #loss series continues
-                
-                
+        
+      
+    def normal_dist(self, int_return, ndigits=2):
+        """
+        return normal distribution - increase as x times standard deviation - alert on > or < 3.5 x sigma
+        """
+
+        return round((int_return / self.stdev), ndigits)
+        
+        
