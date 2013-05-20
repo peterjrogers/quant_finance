@@ -357,6 +357,6 @@ class Ta():
         #Calculate beta with numpy
         res = (np.cov(asset, market) / np.var(market))[0]
         
-        return round(res[0] / res[0], ndigits)
+        return round(res[0] / res[1], ndigits)
         
         
