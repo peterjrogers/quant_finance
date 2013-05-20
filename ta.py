@@ -1,4 +1,7 @@
-import math, array, numpy
+import math
+try: import numpy as np
+except: pass
+
 
 class Ta():
     def __init__(self):
@@ -227,39 +230,46 @@ class Ta():
         return low, high
        
 
-    def stan_dev(self, ndigits=4):
+    def interval_return(self, ndigits=8):
+        """
+        A list of per interval returns for use by standard deviation and beta
+        """
+        
+        try: 
+            if self.int_return_list: pass
+        except: self.int_return_list = []
+        
+        #calc per interval return
+        int_return = self.int_dif(self.close, self.last_close, ndigits)
+        
+        #add return to profit list    self.int_profit
+        self.int_return_list.append(int_return)
+        
+    
+    def stan_dev(self, clist, ndigits=8):
         """
         Standard Deviation
         Shows how much variation from the average value
         https://en.wikipedia.org/wiki/Standard_Deviation
         """
-        try: 
-            if self.standev_return_list: pass
-        except: self.standev_return_list = []
-        
-        #calc per interval return
-        int_return = self.int_dif(self.close, self.last_close, ndigits)
-
-        #add return to profit list    self.int_profit
-        self.standev_return_list.append(int_return)
         
         #calc averge return - xbar
-        xbar = sum(self.standev_return_list) / (len(self.standev_return_list))
+        xbar = sum(clist) / (len(clist))
         
-        #get self.xbar - int_return for all data in period
+        #calc int_return - xbar for all data in period
         pos = 0 
         dset = 0.
-        for item in self.standev_return_list:
-            xminus = self.standev_return_list[pos] - xbar
+        for item in clist:
+            xminus = clist[pos] - xbar
             xsq = math.pow(xminus, 2)
             dset += xsq
             pos += 1
         
         #get standard deviation (percent)
-        self.stdev = round((math.sqrt(dset / pos)), ndigits)
+        return round((math.sqrt(dset / pos)), ndigits)
        
        
-    def int_dif(self, start, end, ndigits=2):
+    def int_dif(self, start, end, ndigits=8):
         """
         Percentage difference between start and end price
         """
@@ -292,11 +302,61 @@ class Ta():
                 self.maxdraw_count +=1    #loss series continues
         
       
-    def normal_dist(self, int_return, ndigits=2):
+    def normal_dist(self, int_return, stdev, ndigits=2):
         """
         return normal distribution - increase as x times standard deviation - alert on > or < 3.5 x sigma
         """
 
-        return round((int_return / self.stdev), ndigits)
+        return round((int_return / stdev), ndigits)
+        
+        
+    def annualize_sharpe(self, sharpe, intervals, divider=1, ndigits=4):
+        """
+        Convert from one unit of Sharpe ratio to another
+        i.e. to annualize a return of daily Sharpe ratio multply by sqrt(253 / 1)
+        or to derive monthly return multiply by sqrt(253 / 12)
+        """
+        k = math.sqrt(intervals / divider)
+        return round((sharpe * k), ndigits)
+        
+        
+    def sharpe_ratio(self, int_return, stan_dev, ndigits=8):
+        """
+        Sharpe ratio is a risk measure calculated with the profit return divided by the deviation from average value
+        Created by William Forsyth Sharpe in the 1960's
+        http://en.wikipedia.org/wiki/Sharpe_ratio
+        """
+        
+        return round((int_return / stan_dev), ndigits)    
+        
+        
+    def capm(self, beta, exp_return, risk_free=3.5, ndigits=4):
+        """
+        The capital asset pricing model (CAPM) is used to determine the required 
+        rate of return when considoring the assets estimated risk derived from beta
+        http://en.wikipedia.org/wiki/CAPM
+        risk_free is the market or sector or cash security
+        beta is derived using the rate of return of both market and asset
+        """
+        return round(risk_free + (beta * (exp_return - risk_free)), ndigits)
+
+       
+    def beta(self, asset, market, ndigits=4):
+        """
+        The Beta of an asset is a calulation of the correlated volatility in relation to the 
+        volatility of the benchmark the assett is being compared to
+        asset = interval return list for asset
+        market = interval return list for market
+        """
+
+        #check for equal list lengths
+        if len(x) != len(y): 
+            if self.verbose > 0: print 'x and y list length unequal'
+            return 
+           
+        #Calculate beta with numpy
+        res = (np.cov(asset, market) / np.var(market))[0]
+        
+        return round(res[0] / res[0], ndigits)
         
         
