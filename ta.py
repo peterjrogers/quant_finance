@@ -350,7 +350,7 @@ class Ta():
         """
 
         #check for equal list lengths
-        if len(x) != len(y): 
+        if len(asset) != len(market): 
             if self.verbose > 0: print 'x and y list length unequal'
             return 
            
